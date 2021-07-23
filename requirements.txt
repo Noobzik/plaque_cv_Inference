@@ -2,3 +2,4 @@ pytesseract
 tensorflow
 numpy
 boto3
+botocore
