@@ -1,0 +1,4 @@
+pytesseract
+tensorflow
+numpy
+boto3
