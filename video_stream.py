@@ -10,6 +10,16 @@ import struct
 import math
 import boto3
 
+# Infos de connexion Kinesis
+AWS_KINESIS_USER_KEY = ""
+AWS_KINESIS_PASS_KEY = ""
+AWS_KINESIS_STREAM_NAME = ""
+# Adresse IP du site pour renvoyer le feed UDP
+AWS_EC2_ADDRESS_IP_SITE = ""
+# Infos de connexion S3
+AWS_S3_USER_KEY = ""
+AWS_S3_USER_PASS = ""
+AWS_S3_BUCKET_NAME = ""
 
 class FrameSegment(object):
     """ 
@@ -158,15 +168,14 @@ def dump_buffer(s):
 
 if __name__ == '__main__':
 
-    STREAM_NAME = "test"
     kvs = boto3.client("kinesisvideo",
-                       aws_access_key_id='',
-                       aws_secret_access_key='',
+                       aws_access_key_id=AWS_KINESIS_USER_KEY,
+                       aws_secret_access_key=AWS_KINESIS_PASS_KEY,
                        region_name='us-east-1')
     # Grab the endpoint from GetDataEndpoint
     endpoint = kvs.get_data_endpoint(
         APIName="GET_HLS_STREAMING_SESSION_URL",
-        StreamName=STREAM_NAME
+        StreamName=AWS_KINESIS_STREAM_NAME
     )['DataEndpoint']
 
     print(endpoint)
@@ -174,11 +183,11 @@ if __name__ == '__main__':
     # # Grab the HLS Stream URL from the endpoint
     kvam = boto3.client("kinesis-video-archived-media",
                         endpoint_url=endpoint,
-                        aws_access_key_id='',
-                        aws_secret_access_key='',
+                        aws_access_key_id=AWS_KINESIS_USER_KEY,
+                        aws_secret_access_key=AWS_KINESIS_PASS_KEY,
                         region_name='us-east-1')
     url = kvam.get_hls_streaming_session_url(
-        StreamName=STREAM_NAME,
+        StreamName=AWS_KINESIS_STREAM_NAME,
         PlaybackMode="LIVE",
     )['HLSStreamingSessionURL']
 
@@ -205,7 +214,7 @@ if __name__ == '__main__':
     # Socket Stream
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     port = 55055
-    fs = FrameSegment(s, port)
+    fs = FrameSegment(s, port, addr=AWS_EC2_ADDRESS_IP_SITE)
     print("After socket stream setup")
 
     #    cap.set(3, 416)
@@ -294,7 +303,7 @@ if __name__ == '__main__':
 
             result = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
-            cv2.imshow("result", result)
+#             cv2.imshow("result", result)
 
             # Write live feed as UDP SOCKET
             res = time.localtime()
@@ -314,7 +323,7 @@ if __name__ == '__main__':
                     car_type,
                     car_color,
                     car_plaque), result)
-            cv2.imshow('image', result)
+#             cv2.imshow('image', result)
             fs.udp_frame(result)
 
     cap.release()
